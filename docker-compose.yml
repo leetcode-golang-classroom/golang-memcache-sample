@@ -1,0 +1,35 @@
+networks:
+  memcached:
+    name: memcached
+    driver: bridge
+
+services:
+  memcached:
+    image: memcached:alpine
+    container_name: memcached
+    ports:
+      - 11211:11211
+    entrypoint: ["memcached", "-m", "64"]
+    restart: always
+    networks:
+      - memcached
+    healthcheck:
+      test: echo stats | nc 127.0.0.1 11211
+      interval: 10s
+      retries: 60
+  photos-api:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    container_name: photos-api
+    depends_on:
+      memcached:
+        condition: service_healthy
+    environment:
+      PORT: 4000
+      MEMCACHE_URL: memcached:11211
+      JSONSERVER_URL: https://jsonplaceholder.typicode.com/photos
+    ports:
+      - 4000:4000
+    networks:
+      - memcached
