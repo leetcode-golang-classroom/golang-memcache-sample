@@ -1,6 +1,7 @@
 FROM golang:1.22.4 AS base
+RUN mkdir /app
 WORKDIR /app
-ADD . /app/
+COPY . /app/
 RUN go mod download
 RUN make build
 FROM alpine AS release
